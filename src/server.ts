@@ -40,9 +40,9 @@ export interface iDirectoryIdentifier
 }
 
 let config: iFtpConfig = {
-  host: "173.54.20.170",
-  user: "srichter",
-  password: "denville",
+  host: "",
+  user: "",
+  password: "",
   port: 21
 };
 
@@ -55,6 +55,19 @@ setTimeout(() =>
 }, 1);
 
 console.log(`running server.ts`);
+
+const args = commandLine_getArguments( process.argv ) ;
+config.host = args.host ;
+config.user = args.user ;
+config.password = args.password ;
+config.port = args.port ? Number(args.port) : 21 ;
+
+// process.argv.forEach(function (val, index, array)
+// {
+//   console.log(index + ': ' + val);
+// });
+
+
 async_main( ) ;
 
 // ---------------------------------- async_main ----------------------------------
@@ -77,6 +90,32 @@ async function async_main( )
 
   console.log(`errmsg:${errmsg} dirPath:${dirPath}`);
   return { errmsg, dirPath };
+}
+
+// --------------------------- commandLine_getArguments ---------------------------
+// return command line arguments as object where each property is argument key and
+// its following value.  -user xxxx -addr 173.33
+function commandLine_getArguments( argv: string[] ) : {[key:string] : string}
+{
+  let key = '' ;
+  let vlu = '' ;
+  const args: {[key:string] : string } = {} ;
+  for( const arg of argv )
+  {
+    if ( !key )
+    {
+      const match = arg.match(/-(\w+)/) ;  // remove leading - from key.
+      if ( match )
+        key = match[1] ;
+    }
+    else 
+    {
+      vlu = arg ;
+      args[key] = vlu ;
+      key = '' ;
+    }
+  }
+  return args;
 }
 
 // ----------------------------------- ftp_pwd -----------------------------------
