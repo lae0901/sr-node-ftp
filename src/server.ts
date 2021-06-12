@@ -56,17 +56,12 @@ setTimeout(() =>
 
 console.log(`running server.ts`);
 
+// load connection settings from command line.
 const args = commandLine_getArguments( process.argv ) ;
 config.host = args.host ;
 config.user = args.user ;
 config.password = args.password ;
 config.port = args.port ? Number(args.port) : 21 ;
-
-// process.argv.forEach(function (val, index, array)
-// {
-//   console.log(index + ': ' + val);
-// });
-
 
 async_main( ) ;
 
@@ -82,6 +77,20 @@ async function async_main( )
   if (c)
   {
     ({ errmsg, dirPath } = await ftp_pwd(global_conn));
+
+    const siteResponse = await ftp_site(global_conn, 'namefmt 1') ;
+    console.log(`site: ${siteResponse}`);
+
+    {
+      const quoteResponse = await ftp_quote(global_conn, 'RCMD DSPLIBL');
+      console.log(`quote: ${quoteResponse}`);
+    }
+
+    {
+      const quoteResponse = await ftp_quote(global_conn, 'RCMD DSPJOB');
+      console.log(`quote: ${quoteResponse}`);
+    }
+
   }
   else
   {
@@ -102,17 +111,17 @@ function commandLine_getArguments( argv: string[] ) : {[key:string] : string}
   const args: {[key:string] : string } = {} ;
   for( const arg of argv )
   {
-    if ( !key )
+    // key names start with "-"
+    const match = arg.match(/-(\w+)/);  // remove leading - from key.
+    if (match)
+      key = match[1];
+
+    // have a key. Store arg as property value.
+    else if ( key )
     {
-      const match = arg.match(/-(\w+)/) ;  // remove leading - from key.
-      if ( match )
-        key = match[1] ;
-    }
-    else 
-    {
-      vlu = arg ;
-      args[key] = vlu ;
-      key = '' ;
+      vlu = arg;
+      args[key] = vlu;
+      key = '';
     }
   }
   return args;
@@ -143,6 +152,43 @@ export function ftp_pwd(conn: iFtpConnection):
   return promise;
 }
 
+// ----------------------------------- ftp_quote -----------------------------------
+// run site command on the server.
+// example: site namefmt 1
+export function ftp_quote(conn: iFtpConnection, cmd: string): Promise<string>
+{
+  const promise = new Promise<string>((resolve, reject) =>
+  {
+    const { c } = conn;
+    if (!c)
+      throw 'not connected';
+    c.quote(cmd, function (err, respText, respCode)
+    {
+      if (err) throw err;
+      resolve(respText);
+    });
+  });
+  return promise;
+}
+
+// ----------------------------------- ftp_site -----------------------------------
+// run site command on the server.
+// example: site namefmt 1
+export function ftp_site(conn: iFtpConnection, cmd: string): Promise<string>
+{
+  const promise = new Promise<string>((resolve, reject) =>
+  {
+    const { c } = conn;
+    if (!c)
+      throw 'not connected';
+    c.site(cmd, function (err, respText, respCode)
+    {
+      if (err) throw err;
+      resolve(respText);
+    });
+  });
+  return promise;
+}
 
 // ------------------------- activeClient_insureConnected -------------------------
 function activeClient_insureConnected(conn: iFtpConnection)
@@ -191,7 +237,7 @@ function activeClient_insureConnected(conn: iFtpConnection)
         console.log('ready');
 
         conn.namefmt = conn.namefmt || '1';
-        // const xx = await ftp_site(conn, `namefmt ${conn.namefmt}`);
+        const xx = await ftp_site(conn, `namefmt ${conn.namefmt}`);
 
         // // set the current IFS folder or current library.
         // if (conn.currentFolder || conn.currentLibrary)

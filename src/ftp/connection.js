@@ -81,7 +81,9 @@ var FTP = module.exports = function() {
 };
 inherits(FTP, EventEmitter);
 
-FTP.prototype.connect = function(options) {
+// ---------------------------------- FTP.connect ----------------------------------
+FTP.prototype.connect = function(options)
+{
   var self = this;
   if (typeof options !== 'object')
     options = {};
@@ -156,6 +158,7 @@ FTP.prototype.connect = function(options) {
         }
       };
 
+// ------------------------------------ donoop ------------------------------------
   function donoop() {
     if (!self._socket || !self._socket.writable)
       clearTimeout(self._keepalive);
@@ -167,7 +170,9 @@ FTP.prototype.connect = function(options) {
       noopreq.cb();
   }
 
-  function onconnect() {
+// ----------------------------------- onconnect -----------------------------------
+  function onconnect()
+  {
     clearTimeout(timer);
     clearTimeout(self._keepalive);
     self.connected = true;
@@ -359,6 +364,11 @@ FTP.prototype.delete = function(path, cb) {
 
 FTP.prototype.site = function(cmd, cb) {
   this._send('SITE ' + cmd, cb);
+};
+
+FTP.prototype.quote = function (cmd, cb)
+{
+  this._send('QUOTE ' + cmd, cb);
 };
 
 FTP.prototype.status = function(cb) {
@@ -1031,25 +1041,40 @@ FTP.prototype._store = function(cmd, input, zcomp, cb) {
   });
 };
 
-FTP.prototype._send = function(cmd, cb, promote) {
+// ----------------------------------- FTP._send -----------------------------------
+FTP.prototype._send = function(cmd, cb, promote)
+{
+  // bgnTemp
+  console.log( `_send ${cmd}`);
+  // endTemp
+
   clearTimeout(this._keepalive);
-  if (cmd !== undefined) {
+  if (cmd !== undefined)
+  {
     if (promote)
       this._queue.unshift({ cmd: cmd, cb: cb });
     else
       this._queue.push({ cmd: cmd, cb: cb });
   }
   var queueLen = this._queue.length;
-  if (!this._curReq && queueLen && this._socket && this._socket.readable) {
+  if (!this._curReq && queueLen && this._socket && this._socket.readable)
+  {
     this._curReq = this._queue.shift();
     if (this._curReq.cmd === 'ABOR' && this._pasvSocket)
       this._pasvSocket.aborting = true;
-    this._debug&&this._debug('[connection] > ' + inspect(this._curReq.cmd));
+    this._debug && this._debug('[connection] > ' + inspect(this._curReq.cmd));
+
+    // bgnTemp
+    console.log( `socket.write ${this._curReq.cmd}`);
+    // endTemp
+
     this._socket.write(this._curReq.cmd + '\r\n');
-  } else if (!this._curReq && !queueLen && this._ending)
+  }
+  else if (!this._curReq && !queueLen && this._ending)
     this._reset();
 };
 
+// ---------------------------------- FTP._reset ----------------------------------
 FTP.prototype._reset = function() {
   if (this._pasvSock && this._pasvSock.writable)
     this._pasvSock.end();
