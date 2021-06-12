@@ -2,3 +2,4 @@ tester/lib
 lib/
 dist/
 node_modules/
+out/
