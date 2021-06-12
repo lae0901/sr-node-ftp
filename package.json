@@ -7,10 +7,6 @@
   "engines": {
     "node": ">=0.8.0"
   },
-  "dependencies": {
-    "xregexp": "2.0.0",
-    "readable-stream": "1.1.x"
-  },
   "scripts": {
     "test": "node test/test.js"
   },
@@ -28,6 +24,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lae0901/sr-node-ftp.git"
+  },
+  "dependencies": {
+    "xregexp": "2.0.0",
+    "readable-stream": "1.1.x"
   },
   "devDependencies": {
     "@types/node": "^15.12.2",
