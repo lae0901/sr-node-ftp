@@ -28,5 +28,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/lae0901/sr-node-ftp.git"
+  },
+  "devDependencies": {
+    "@types/node": "^15.12.2",
+    "typescript": "^4.3.2"
   }
 }
