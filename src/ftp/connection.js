@@ -52,7 +52,8 @@ var /*TYPE = {
     },*/
     bytesNOOP = new Buffer('NOOP\r\n');
 
-var FTP = module.exports = function() {
+var FTP = module.exports = function()
+{
   if (!(this instanceof FTP))
     return new FTP();
 
@@ -111,9 +112,11 @@ FTP.prototype.connect = function(options)
   socket.setKeepAlive(true);
 
   this._parser = new Parser({ debug: debug });
-  this._parser.on('response', function(code, text) {
+  this._parser.on('response', function(code, text)
+  {
     var retval = code / 100 >> 0;
-    if (retval === RETVAL.ERR_TEMP || retval === RETVAL.ERR_PERM) {
+    if (retval === RETVAL.ERR_TEMP || retval === RETVAL.ERR_PERM)
+    {
       if (self._curReq)
         self._curReq.cb(makeError(code, text), undefined, code);
       else
@@ -126,7 +129,8 @@ FTP.prototype.connect = function(options)
     //
     // also: don't forget our current request if we're expecting another
     // terminating response ....
-    if (self._curReq && retval !== RETVAL.PRELIM) {
+    if (self._curReq && retval !== RETVAL.PRELIM)
+    {
       self._curReq = undefined;
       self._send();
     }
@@ -134,7 +138,8 @@ FTP.prototype.connect = function(options)
     noopreq.cb();
   });
 
-  if (this.options.secure) {
+  if (this.options.secure)
+  {
     secureOptions = {};
     secureOptions.host = this.options.host;
     for (var k in this.options.secureOptions)
@@ -145,28 +150,33 @@ FTP.prototype.connect = function(options)
 
   if (this.options.secure === 'implicit')
     this._socket = tls.connect(secureOptions, onconnect);
-  else {
+  else
+  {
     socket.once('connect', onconnect);
     this._socket = socket;
   }
 
   var noopreq = {
         cmd: 'NOOP',
-        cb: function() {
-          clearTimeout(self._keepalive);
-          self._keepalive = setTimeout(donoop, self.options.aliveTimeout);
-        }
+        cb: function()
+            {
+              clearTimeout(self._keepalive);
+              self._keepalive = setTimeout(donoop, self.options.aliveTimeout);
+            }
       };
 
 // ------------------------------------ donoop ------------------------------------
-  function donoop() {
+  function donoop()
+  {
     if (!self._socket || !self._socket.writable)
       clearTimeout(self._keepalive);
-    else if (!self._curReq && self._queue.length === 0) {
+    else if (!self._curReq && self._queue.length === 0)
+    {
       self._curReq = noopreq;
       debug&&debug('[connection] > NOOP');
       self._socket.write(bytesNOOP);
-    } else
+    }
+    else
       noopreq.cb();
   }
 
@@ -180,48 +190,61 @@ FTP.prototype.connect = function(options)
 
     var cmd;
 
-    if (self._secstate) {
-      if (self._secstate === 'upgraded-tls' && self.options.secure === true) {
+    if (self._secstate)
+    {
+      if (self._secstate === 'upgraded-tls' && self.options.secure === true)
+      {
         cmd = 'PBSZ';
         self._send('PBSZ 0', reentry, true);
-      } else {
+      } else
+      {
         cmd = 'USER';
         self._send('USER ' + self.options.user, reentry, true);
       }
-    } else {
-      self._curReq = {
-        cmd: '',
-        cb: reentry
-      };
+    }
+    else
+    {
+      self._curReq = { cmd: '', cb: reentry };
     }
 
-    function reentry(err, text, code) {
-      if (err && (!cmd || cmd === 'USER' || cmd === 'PASS' || cmd === 'TYPE')) {
+// ------------------------------------ reentry ------------------------------------
+    function reentry(err, text, code)
+    {
+      if (err && (!cmd || cmd === 'USER' || cmd === 'PASS' || cmd === 'TYPE'))
+      {
         self.emit('error', err);
         return self._socket && self._socket.end();
       }
+
       if ((cmd === 'AUTH TLS' && code !== 234 && self.options.secure !== true)
           || (cmd === 'AUTH SSL' && code !== 334)
           || (cmd === 'PBSZ' && code !== 200)
-          || (cmd === 'PROT' && code !== 200)) {
+          || (cmd === 'PROT' && code !== 200))
+      {
         self.emit('error', makeError(code, 'Unable to secure connection(s)'));
         return self._socket && self._socket.end();
       }
 
-      if (!cmd) {
+      if (!cmd)
+      {
         // sometimes the initial greeting can contain useful information
         // about authorized use, other limits, etc.
         self.emit('greeting', text);
 
-        if (self.options.secure && self.options.secure !== 'implicit') {
+        if (self.options.secure && self.options.secure !== 'implicit')
+        {
           cmd = 'AUTH TLS';
           self._send(cmd, reentry, true);
-        } else {
+        } 
+        else
+        {
           cmd = 'USER';
           self._send('USER ' + self.options.user, reentry, true);
         }
-      } else if (cmd === 'USER') {
-        if (code !== 230) {
+      } else if (cmd === 'USER')
+      {
+        if (code !== 230)
+        {
           // password required
           if (!self.options.password &&
                self.options.password !== '') {
