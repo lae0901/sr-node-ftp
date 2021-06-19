@@ -10,7 +10,7 @@
         "${workspaceFolder}/out/**/*.js"
       ],
       "preLaunchTask": "npm: build",
-      "args":["-host", "sss.54.20.170", "-user", "srieeeechrr", "-password", "dwwwwe" ]
+      "args":["-settingsFile", "./settings.json" ]
     },
   ]
 }

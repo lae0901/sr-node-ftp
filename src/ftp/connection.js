@@ -391,7 +391,16 @@ FTP.prototype.site = function(cmd, cb) {
 
 FTP.prototype.quote = function (cmd, cb)
 {
-  this._send('QUOTE ' + cmd, cb);
+  // this._send('QUOTE ' + cmd, cb);
+  console.log(`quote ${cmd}`)
+  this._send(cmd, cb);
+};
+
+// ------------------------------- raw -----------------------------------------
+// send command, as is, to remote.  Receive back response.
+FTP.prototype.raw = function (cmd, cb)
+{
+  this._send(cmd, cb);
 };
 
 FTP.prototype.status = function(cb) {

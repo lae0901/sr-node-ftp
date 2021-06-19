@@ -213,6 +213,8 @@ declare class Client extends events.EventEmitter {
      */
     site(command: string, callback: (error: Error, responseText: string, responseCode: number) => void): void;
 
+    raw(command: string, callback: (error: Error, responseText: string, responseCode: number) => void): void;
+
     /**
      * Sends command (e.g. 'CHMOD 755 foo', 'QUOTA') using SITE. callback has 3 parameters:
      * < Error >err, < _string >responseText, < integer >responseCode.

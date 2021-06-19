@@ -4,7 +4,7 @@ import
     lockableResource_new, lockableResource_release,
     lockableResource_waitAndLock
   } from './common/sr_wait';
-
+import { fstat, readFileSync } from 'fs';
 
 // ------------------------------- iFtpConnection -------------------------------
 export interface iFtpConnection
@@ -58,10 +58,24 @@ console.log(`running server.ts`);
 
 // load connection settings from command line.
 const args = commandLine_getArguments( process.argv ) ;
-config.host = args.host ;
-config.user = args.user ;
-config.password = args.password ;
-config.port = args.port ? Number(args.port) : 21 ;
+
+// get settings from JSON file
+if ( args.settingsFile )
+{
+  const text = readFileSync(`${args.settingsFile}`, 'utf-8');
+  const settings = JSON.parse(text) ;
+  config.host = settings.host ;
+  config.user = settings.user ;
+  config.password = settings.password ;
+}
+else
+{
+  config.host = args.host;
+  config.user = args.user;
+  config.password = args.password;
+  config.port = args.port ? Number(args.port) : 21 ;
+}
+config.port = config.port || 21 ;
 
 async_main( ) ;
 
@@ -78,18 +92,33 @@ async function async_main( )
   {
     ({ errmsg, dirPath } = await ftp_pwd(global_conn));
 
-    const siteResponse = await ftp_site(global_conn, 'namefmt 1') ;
-    console.log(`site: ${siteResponse}`);
-
     {
-      const quoteResponse = await ftp_quote(global_conn, 'RCMD DSPLIBL');
-      console.log(`quote: ${quoteResponse}`);
+      const cmd = `SITE namefmt 1`;
+      const response = await ftp_quote( global_conn, cmd ) ;
+      console.log(`{cmd}: ${response}`);
     }
 
     {
-      const quoteResponse = await ftp_quote(global_conn, 'RCMD DSPJOB');
-      console.log(`quote: ${quoteResponse}`);
+      const siteResponse = await ftp_site(global_conn, 'namefmt 1');
+      console.log(`site: ${siteResponse}`);
     }
+
+    {
+      const cmd = `PWD`;
+      const response = await ftp_raw(global_conn, cmd);
+      console.log(`{cmd}: ${response}`);
+    }
+
+
+    // {
+    //   const quoteResponse = await ftp_quote(global_conn, 'RCMD DSPLIBL');
+    //   console.log(`quote: ${quoteResponse}`);
+    // }
+
+    // {
+    //   const quoteResponse = await ftp_quote(global_conn, 'RCMD DSPJOB');
+    //   console.log(`quote: ${quoteResponse}`);
+    // }
 
   }
   else
@@ -163,6 +192,25 @@ export function ftp_quote(conn: iFtpConnection, cmd: string): Promise<string>
     if (!c)
       throw 'not connected';
     c.quote(cmd, function (err, respText, respCode)
+    {
+      if (err) throw err;
+      resolve(respText);
+    });
+  });
+  return promise;
+}
+
+// ----------------------------------- ftp_raw -----------------------------------
+// run site command on the server.
+// example: site namefmt 1
+export function ftp_raw(conn: iFtpConnection, cmd: string): Promise<string>
+{
+  const promise = new Promise<string>((resolve, reject) =>
+  {
+    const { c } = conn;
+    if (!c)
+      throw 'not connected';
+    c.raw(cmd, function (err, respText, respCode)
     {
       if (err) throw err;
       resolve(respText);
