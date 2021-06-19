@@ -94,8 +94,8 @@ async function async_main( )
 
     {
       const cmd = `SITE namefmt 1`;
-      const response = await ftp_quote( global_conn, cmd ) ;
-      console.log(`{cmd}: ${response}`);
+      const response = await ftp_raw( global_conn, cmd ) ;
+      console.log(`${cmd}: ${response}`);
     }
 
     {
@@ -109,6 +109,11 @@ async function async_main( )
       console.log(`{cmd}: ${response}`);
     }
 
+    {
+      const cmd = `rcmd  couri7/UTL8180 OBJ(APLUSB1FCC/CUS*) OBJTYPE(*ALL) TOCSV('/tmp/utl8180.csv')`;
+      const response = await ftp_raw(global_conn, cmd);
+      console.log(`{cmd}: ${response}`);
+    }
 
     // {
     //   const quoteResponse = await ftp_quote(global_conn, 'RCMD DSPLIBL');
