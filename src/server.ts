@@ -114,17 +114,6 @@ async function async_main( )
       const response = await ftp_raw(global_conn, cmd);
       console.log(`{cmd}: ${response}`);
     }
-
-    // {
-    //   const quoteResponse = await ftp_quote(global_conn, 'RCMD DSPLIBL');
-    //   console.log(`quote: ${quoteResponse}`);
-    // }
-
-    // {
-    //   const quoteResponse = await ftp_quote(global_conn, 'RCMD DSPJOB');
-    //   console.log(`quote: ${quoteResponse}`);
-    // }
-
   }
   else
   {
